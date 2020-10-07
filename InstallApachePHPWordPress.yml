@@ -1,0 +1,105 @@
+#Author: Sneha Vasudeva Rao
+#Date: 9/29/2020
+#Purpose: Install Apache, PHP and WordPress on CentOS
+
+---
+- hosts: webservers
+
+  tasks:
+  - name: Install Apache
+    yum: name=httpd state=present
+  - name: Start httpd
+    service: name=httpd state=started
+  - name: enable http
+    service: name=httpd enabled=yes
+  - name: repository
+    yum: name=https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm state=present
+  - name: install remi repository
+    yum: name=http://rpms.remirepo.net/enterprise/remi-release-7.rpm state=present
+  - name: install yum-utils
+    command: yum-config-manager --enable remi-php56
+  - name: Install php5.6
+    yum: 
+      name: "{{ item }}"
+      state: present
+      skip_broken: yes
+    with_items:
+     - php
+     - php-mcrypt
+     - php-cli
+     - php-gd
+     - php-curl
+     - php-mysql
+     - php-ldap
+     - php-zip
+     - php-fileinfo
+  - name: Test file
+    shell: echo "<?php phpinfo(); ?>"
+  - name: Install firewalld
+    action: yum name=firewalld state=installed
+  - name: start and enable firewalld
+    service: name=firewalld state=started enabled=yes
+  - name: open port 80
+    command: firewall-cmd --zone=public --permanent --add-service=http
+  - name: tcp port80
+    command: firewall-cmd --zone=public --permanent --add-port=80/tcp
+  - name: Reload firewall
+    command: firewall-cmd --reload
+  - name: Install mariadb
+    yum: name=mariadb-server state=present
+  - name: start and enable mariadb
+    service: name=mariadb.service state=started enabled=yes
+  - name: add bind-address to /etc/my.cnf.d/server.cnf file
+    lineinfile: path=/etc/my.cnf.d/server.cnf insertafter='\[mysqld-5.5\]$' line='bind-address=0.0.0.0'
+  - name: restart mariadb
+    command: systemctl restart mariadb.service
+  - name: Install unzip
+    command: yum -y install unzip
+  - name: unzip files
+    unarchive: src=https://wordpress.org/latest.zip dest=/var/www/html/ remote_src=yes
+  - name: make apache owner of wordpress folder
+    file: name=/var/www/html/wordpress/ state=directory owner=apache group=apache
+  - name: copy wp-config-sample.php to wp-config.php
+    command: cp /var/www/html/wordpress/wp-config-sample.php /var/www/html/wordpress/wp-config.php
+  - name: edit contents of wp-config.php 
+    replace:
+      path: /var/www/html/wordpress/wp-config.php 
+      regexp: '{{item.from}}' 
+      replace: '{{item.to}}'
+    with_items:
+    - { from: 'database_name_here', to: 'wpdb'}
+    - { from: 'username_here', to: 'wpuser'}
+    - { from: 'password_here', to: 'wppass'}
+    - { from: 'localhost', to: '192.168.44.136'}
+  - name: Configure apache to serve wordpress
+    blockinfile:
+      path: /etc/httpd/conf.d/wordpress.conf
+      create: yes
+      block: |
+        <VirtualHost *:80>
+        ServerAdmin admin@sv5269-domain.com
+        DocumentRoot /var/www/html/wordpress
+        ServerName sv5269.com
+        ServerAlias www.sv5269.com
+
+        Alias /sv5269 “/var/www/html/wordpress/”
+        <Directory /var/www/html/wordpress/>
+        Options +FollowSymlinks
+        AllowOverride All
+
+        </Directory>
+
+        ErrorLog /var/log/httpd/wordpress-error_log
+        CustomLog /var/log/httpd/wordpress-access_log common
+        </VirtualHost>
+  - name: Restart httpd
+    command: systemctl restart httpd
+  - name: copy php file to webserver
+    copy: src=/etc/ansible/wp-contact-information.php dest=/var/www/html/wordpress/wp-contact-information.php
+  - name: Install Server with GUI
+    command: yum groupinstall "Server with GUI" -y
+  - name: Enable Server with GUI
+    command: systemctl enable graphical.target
+  - name: Start Server with GUI
+    command: systemctl start graphical.target
+
