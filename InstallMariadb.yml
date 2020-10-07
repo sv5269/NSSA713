@@ -1,0 +1,54 @@
+#Author: Sneha Vasudeva Rao
+#Date: 9/29/2020
+#Purpose: Install Mariadb on CentOS and create wordpress database
+
+---
+- hosts: dbservers
+
+  tasks:
+  - name: Install Mariadb
+    yum: 
+      name: mariadb-server
+      state: present
+  - name: Install python mysql
+    yum: 
+      name: MySQL-python
+      state: present
+  - name: start mariadb
+    service: name=mariadb.service state=started enabled=yes
+  - name: Create database
+    mysql_db: name=wpdb state=present
+  - name: create wpuser  with all privileges
+    mysql_user: name=wpuser password=wppass priv="*.*:ALL" host="%" state=present
+  - name: flush privileges
+    command: systemctl restart mariadb.service
+  - name: Edit /etc/my.cnf.d/server.cnf file
+    lineinfile: path=/etc/my.cnf.d/server.cnf insertafter='\[mysqld\]$' line='bind-address=0.0.0.0'
+  - name: restart mariadb service
+    command: systemctl restart mariadb.service
+  - name: Install firewalld
+    yum: name=firewalld state=present
+  - name: start and enable firewalld
+    service: name=firewalld state=started enabled=yes
+  - name: open port 80
+    command: firewall-cmd --zone=public --add-service=http
+  - name: allow tcp port 3306
+    command: firewall-cmd --zone=public --add-port=3306/tcp --permanent
+  - name: allow tcp port 8080
+    command: firewall-cmd --zone=public --add-port=8080/tcp --permanent
+  - name: Reload firewall
+    command: firewall-cmd --reload
+  - name: Creates database for WordPress
+    mysql_db:
+      name: "wpdb"
+      state: present
+      login_user: root
+      login_password: ""
+  - name: Create MySQL user for WordPress
+    mysql_user:
+      name: "wpuser"
+      password: "wppass"
+      priv: "wpdb.*:ALL"
+      state: present
+      login_user: root
+      login_password: ""

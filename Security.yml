@@ -1,0 +1,10 @@
+#Author: Sneha Vasudeva Rao
+#Date: 9/29/2020
+#Purpose: To check if Security Policies are implemented correctly
+
+---
+- hosts: dbservers
+
+  tasks:
+  - name: Security Policies
+    script: PingTest.sh
