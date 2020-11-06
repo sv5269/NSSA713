@@ -1,0 +1,42 @@
+#Author: Sneha Vasudeva Rao
+#Date: 10/19/2020
+#Purpose: Check if webservers run as expected
+
+---
+- hosts: loadbalancer
+
+  tasks:
+  - name: Check if haproxy is running
+    command: systemctl status haproxy.service
+    ignore_errors: yes
+    changed_when: false
+    register: service_haproxy_status
+
+  - name: Report status of haproxy
+    fail:
+      msg: |
+        Service haproxy is not running.
+        Output of `systemctl status haproxy.service`:
+        {{ service_haproxy_status.stdout }}
+    when: service_haproxy_status.rc !=0
+
+  - name: Check what servers the loadbalancer is configured for
+    command: grep -A 4 '^backend http_back' /etc/haproxy/haproxy.cfg
+    register: servers
+
+  - debug: var=servers.stdout_lines
+
+  - name: start siege
+    local_action: shell siege -c 100 192.168.44.164 >> /home/student/ansible/siege_log &
+  - name: Pause for 1 minute after starting siege
+    pause:
+      minutes: 1
+
+  - name: stop siege
+    local_action: shell kill $(pidof siege)
+
+  - name: Check failed transactions
+    local_action: shell grep "failed_transactions" siege_log | awk '{print $2}' | sed "s/,//"
+    register: failed_transactions
+
+  - debug: var=failed_transactions.stdout_lines

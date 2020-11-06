@@ -1,0 +1,86 @@
+#Author: Sneha Vasudeva Rao
+#Date: 10/19/2020
+#Purpose: Check if webservers run as expected
+
+---
+- hosts: webservers
+
+  tasks:
+  - name: Check if Apache is running
+    shell: pgrep httpd
+    ignore_errors: yes
+    changed_when: false
+    register: service_apache_status
+
+  - name: Report status of Apache
+    fail:
+      msg: |
+        Service httpd is not running.
+        Return code from `pgrep`:
+        {{ service_apache_status.rc }}
+    when: service_apache_status.rc != 0
+
+  - name: Check if Mariadb is running
+    command: systemctl status mariadb.service
+    ignore_errors: yes
+    changed_when: false
+    register: service_mariadb_status
+
+  - name: Report status of Mariadb if mariadb is not running
+    fail:
+      msg: |
+        Service mariadb is not running.
+        Output of `systemctl status mariadb.service`:
+        {{ service_mariadb_status.stdout }}
+#        {{ service_mariadb_status.stderr }}
+    when: service_mariadb_status.rc !=0
+
+  - name: Check if WordPress is install
+    command: grep wp_version /var/www/html/wordpress/wp-includes/version.php
+    ignore_errors: yes
+    changed_when: false
+    register: WordPress_status
+
+  - name: Report WordPress installation has failed
+    fail:
+      msg: |
+        WordPress is not installed on the server.
+        Output of `grep wp_version /var/www/html/wordpress/wp-includes/version.php`:
+        {{ WordPress_status.stdout }}
+        {{ WordPress_status.rc }}
+    when: WordPress_status.rc !=0
+
+  - name: Check if PHP is install
+    command: php -v
+    ignore_errors: yes
+    changed_when: false
+    register: php_status
+
+  - name: Report PHP installation has failed
+    fail:
+      msg: |
+        PHP is not installed on the server.
+        Output of `php -v`:
+        {{ php_status.stdout }}
+        {{ php_status.rc }}
+    when: php_status.rc !=0
+
+  - name: Check if GUI is install
+    command: ls /usr/share/xsessions/
+    ignore_errors: yes
+    changed_when: false
+    register: gui_status
+
+  - name: Report if GUI is not installed
+    fail:
+      msg: |
+        GUI is not installed on the server.
+        Output of `ls /usr/share/xsessions/`:
+        {{ gui_status.stdout }}
+        {{ gui_status.rc }}
+    when: gui_status.rc !=0
+
+  - name: Check that you can connect (GET) to the website
+    uri:
+      url: http://192.168.44.164/
+

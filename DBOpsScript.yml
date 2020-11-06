@@ -1,0 +1,43 @@
+#Author: Sneha Vasudeva Rao
+#Date: 10/19/2020
+#Purpose: Check if webservers run as expected
+
+---
+- hosts: dbservers
+
+  tasks:
+  - name: Check if Mariadb is running
+    command: systemctl status mariadb.service
+    ignore_errors: yes
+    changed_when: false
+    register: service_mariadb_status
+
+  - name: Report status of Mariadb
+    fail:
+      msg: |
+        Service mariadb is not running.
+        Output of `systemctl status mariadb.service`:
+        {{ service_mariadb_status.stdout }}
+    when: service_mariadb_status.rc !=0
+
+  - name: check if DB exists
+    shell: mysql --host=192.168.44.145 --user=wpuser --password=wppass -e 'SHOW DATABASES;' | grep -c wpdb
+    register: dbstatus
+    failed_when: dbstatus.rc != 0
+
+  - debug: var=dbstatus.stdout_lines
+
+  - name: check if table exists
+    shell: mysql --host=192.168.44.145 --user=wpuser --password=wppass -e 'Select * from wpdb.wp_contact;'
+    register: dbstatus1
+    failed_when: dbstatus1.rc != 0
+  - debug: var=dbstatus1.stdout_lines
+  
+  - name: check connection between webserver and database
+    shell: mysql --host=192.168.44.145 --user=wpuser --password=wppass -e 'show processlist;'
+    register: dbstatus2
+#      msg: {{ dbstatus2.stdout }}
+    failed_when: dbstatus2.rc != 0
+  - debug: var=dbstatus2.stdout_lines
+
+

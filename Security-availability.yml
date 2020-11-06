@@ -1,0 +1,38 @@
+#Author: Sneha Vasudeva Rao
+#Date: 10/29/2020
+#Purpose: To check if Security Policies are implemented correctly
+
+
+---
+- hosts: loadbalancer
+
+  tasks:
+  - name: start siege
+    local_action: shell siege -c 100 192.168.44.164 >> /home/student/ansible/siege_log &
+  - name: Pause for 1 minute after starting siege
+    pause:
+      minutes: 1
+
+  - name: poweroff one VM
+    local_action: shell ssh root@192.168.44.143 'sudo shutdown now'
+    ignore_errors: yes
+    changed_when: false
+    register: vm_status
+
+  - name:  status of vm
+    fail:
+      msg: |
+        {{ vm_status.stdout }}
+    when: vm_status.rc !=255
+  - name: Pause for 1 minute after disabling siege
+    pause:
+      minutes: 1
+  - name: stop siege
+    local_action: shell kill $(pidof siege)
+ 
+  - name: Web Server Availability 
+    local_action: shell grep "availability" siege_log | awk '{print $2}' | sed "s/,/%/"
+    register: availability
+  - debug: var=availability.stdout_lines
+ 
+

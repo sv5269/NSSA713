@@ -1,0 +1,28 @@
+#Author: Sneha Vasudeva Rao
+#Date: 10/21/2020
+#Purpose: To check if Security Policies are implemented correctly
+
+
+---
+- hosts: loadbalancer
+  tasks:
+#  - name: Update CentOS
+#    yum: name="*" skip_broken=yes state=latest
+  - name: Install HAProxy
+    yum: name=haproxy state=latest
+  - name: rename file haproxy.cfg
+    command: mv /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg_bkp
+  - name: copy file haproxy.cfg to remote machine
+    copy: src=/home/student/ansible/haproxy.cfg dest=/etc/haproxy/haproxy.cfg 
+  - name: Start and enable HAProxy
+    service: name=haproxy state=started enabled=yes
+  - name: Install Server with GUI
+    command: yum groupinstall "Server with GUI" -y
+  - name: Enable Server with GUI
+    command: systemctl enable graphical.target
+  - name: Start Server with GUI
+    command: systemctl start graphical.target
+
+ 
+
+
