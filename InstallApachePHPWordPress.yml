@@ -70,7 +70,7 @@
     - { from: 'database_name_here', to: 'wpdb'}
     - { from: 'username_here', to: 'wpuser'}
     - { from: 'password_here', to: 'wppass'}
-    - { from: 'localhost', to: '192.168.44.136'}
+    - { from: 'localhost', to: '192.168.44.145'}
   - name: Configure apache to serve wordpress
     blockinfile:
       path: /etc/httpd/conf.d/wordpress.conf
