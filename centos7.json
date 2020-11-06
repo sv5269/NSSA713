@@ -8,7 +8,108 @@
 "type": "vmware-iso",
 "iso_url": "{{ user `iso` }}",
 "iso_checksum": "{{ user `checksum` }}",
-"vm_name": "MyCentOS7",
+"name": "Webserver1",
+"vm_name": "Webserver1",
+"guest_os_type": "centos-64",
+"ssh_username": "root",
+"ssh_password": "root",
+"ssh_port": 22,
+"ssh_timeout": "60000s",
+"ssh_wait_timeout": "60000s",
+"vmx_data": {
+"memsize": "1024",
+"numvcpus": "1",
+"ethernet0.connectionType": "nat",
+"cpuid.coresPerSocket": "1",
+"disk_size": "10240"
+},
+"http_directory": "http",
+"boot_command": [
+"<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
+],
+"shutdown_command": "/sbin/halt -p"
+},
+{
+"type": "vmware-iso",
+"iso_url": "{{ user `iso` }}",
+"iso_checksum": "{{ user `checksum` }}",
+"name": "Webserver2",
+"vm_name": "WebServer2",
+"guest_os_type": "centos-64",
+"ssh_username": "root",
+"ssh_password": "root",
+"ssh_port": 22,
+"ssh_timeout": "60000s",
+"ssh_wait_timeout": "60000s",
+"vmx_data": {
+"memsize": "1024",
+"numvcpus": "1",
+"ethernet0.connectionType": "nat",
+"cpuid.coresPerSocket": "1",
+"disk_size": "10240"
+},
+"http_directory": "http",
+"boot_command": [
+"<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
+],
+"shutdown_command": "/sbin/halt -p"
+},
+{
+"type": "vmware-iso",
+"iso_url": "{{ user `iso` }}",
+"iso_checksum": "{{ user `checksum` }}",
+"name": "Webserver3",
+"vm_name": "WebServer3",
+"guest_os_type": "centos-64",
+"ssh_username": "root",
+"ssh_password": "root",
+"ssh_port": 22,
+"ssh_timeout": "60000s",
+"ssh_wait_timeout": "60000s",
+"vmx_data": {
+"memsize": "1024",
+"numvcpus": "1",
+"ethernet0.connectionType": "nat",
+"cpuid.coresPerSocket": "1",
+"disk_size": "10240"
+},
+"http_directory": "http",
+"boot_command": [
+"<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
+],
+"shutdown_command": "/sbin/halt -p"
+},
+{
+"type": "vmware-iso",
+"iso_url": "{{ user `iso` }}",
+"iso_checksum": "{{ user `checksum` }}",
+"name": "DatabaseServer",
+"vm_name": "DataBaseServer",
+"guest_os_type": "centos-64",
+"ssh_username": "root",
+"ssh_password": "root",
+"ssh_port": 22,
+"ssh_timeout": "60000s",
+"ssh_wait_timeout": "60000s",
+"vmx_data": {
+"memsize": "1024",
+"numvcpus": "1",
+"ethernet0.connectionType": "nat",
+"cpuid.coresPerSocket": "1",
+"disk_size": "10240"
+},
+"http_directory": "http",
+"boot_command": [
+"<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
+],
+"shutdown_command": "/sbin/halt -p"
+},
+{
+"type": "vmware-iso",
+"iso_url": "{{ user `iso` }}",
+"iso_checksum": "{{ user `checksum` }}",
+"name": "Loadbalancer",
+"vm_name": "Loadbalancer",
 "guest_os_type": "centos-64",
 "ssh_username": "root",
 "ssh_password": "root",
